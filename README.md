@@ -90,7 +90,7 @@ it freely.
 - `rec.py check` shows which config is on (says NOT vid if not).
 - `rec.py start -p` = portrait: kwin/portrait.js puts pianocheetah
   at 1080x1312 (titlebar n frame on, included in that) at the top
-  left of DP-1, OBS's main window in the 1080x608 under it (recorded
+  left of DP-1, OBS main window under it (10 px gap, 540x598, recorded
   but mk.py only uses the top 1312), then OBS goes to `vidp` (profile
   1080x1920 canvas, scene collection screen capture = DP-1, no V4L2),
   then records.  Both windows stay put after.

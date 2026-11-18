@@ -11,7 +11,7 @@ the pianocheetah 60 sec demo (see zEtc in ~/web/pc).
   1080x1920 at 1920,0.
 - OBS records via PipeWire: config `vid` = main monitor (landscape),
   `vidp` = DP-1 (portrait).  Claude starts/stops OBS.
-- Repo: github.com/Stephen-Hazel/video_pch (private).  Commits are
+- Repo: github.com/Stephen-Hazel/video_pch (public).  Commits are
   Stephen's only - no Claude co-author / attribution, ever.
 - Phone: Pixel 8a, landscape, HDR (HLG) is fine - mk.py tonemaps it to
   SDR.  Stabilization standard or off.  Vids get sftp'd over wifi to

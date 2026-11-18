@@ -88,11 +88,11 @@ it freely.
 - `rec.py done` switches back to what was in prev.json.  Do it after
   the last take, not between takes (switching reloads all sources).
 - `rec.py check` shows which config is on (says NOT vid if not).
-- `rec.py start -p` = portrait: kwin/portrait.js makes pianocheetah
-  borderless 1080x1312 at the top left of DP-1, then OBS goes to
-  `vidp` (profile 1080x1920 canvas, scene collection screen capture =
-  DP-1, no V4L2), then records.  pianocheetah stays put after -
-  Alt+F3 > More Actions > No titlebar to get the frame back.
+- `rec.py start -p` = portrait: kwin/portrait.js puts pianocheetah
+  at 1080x1312 (titlebar n frame on, included in that) at the top
+  left of DP-1, then OBS goes to `vidp` (profile 1080x1920 canvas,
+  scene collection screen capture = DP-1, no V4L2), then records.
+  pianocheetah stays put after.
 - Backup: `obs/{vid,vidp}/basic.ini` n `scenes.json` (copied
   2026-11-18).  Restore in OBS: Profile > Import (the dir), Scene
   Collection > Import (its scenes.json).
@@ -255,6 +255,9 @@ AAC 192k, faststart.
   phone (tested on 11-17 take).  `rec.py start -p` + kwin/portrait.js
   + OBS vidp (1080x1920, DP-1).  pianocheetah = class
   app.shaz.pianocheetah, min size 583x196, takes 1080x1312 fine.
+  Then: titlebar n frame left on (in the video).  rec.py finds the
+  kwin script's output in the journal by a unique tag per run (the
+  journal cursor way failed intermittently).
 - Watch for: speaker bleed into headset n phone (lower Ctrl Room
   while talking).  Synth/speaker latency may need a small `--nudge`.
 

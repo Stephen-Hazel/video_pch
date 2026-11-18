@@ -8,7 +8,7 @@
 #   rec.py done    switch obs back to the config it had before start
 #   rec.py status  is it recording n for how long
 
-import json, logging, sys, time, pathlib, subprocess
+import json, logging, sys, time, pathlib, subprocess, tempfile
 import obsws_python as obs
 
 logging.disable (logging.CRITICAL)     # obsws tracebacks - we say why
@@ -41,24 +41,31 @@ def parm (cl, cat, name):
 
 
 def kwin (js):
-   "run a kwin script, return its PCH|... print line"
-   q = ["qdbus6", "org.kde.KWin"]
-   jc = subprocess.run (["journalctl", "--user", "-n0", "--show-cursor"],
-                        capture_output=True, text=True).stdout
-   cur = jc.strip ().split ("cursor: ") [-1]
+   "run a kwin script w a unique TAG, return what it said after TAG|"
+   q   = ["qdbus6", "org.kde.KWin"]
+   t0  = time.time ()
+   tag = f"PCH{time.time_ns ()}"
+   tmp = pathlib.Path (tempfile.gettempdir ()) / f"{tag}.js"
+   tmp.write_text (js.read_text ().replace ('TAG = "PCH"',
+                                            f'TAG = "{tag}"'))
    sid = subprocess.run (q + ["/Scripting", "org.kde.kwin.Scripting."
-                              "loadScript", str (js), "pch"],
+                              "loadScript", str (tmp), tag],
                          capture_output=True, text=True).stdout.strip ()
    subprocess.run (q + [f"/Scripting/Script{sid}",
                         "org.kde.kwin.Script.run"], capture_output=True)
-   time.sleep (.5)
+   ln = []
+   for i in range (10):                # journal lags a bit
+      time.sleep (.3)
+      out = subprocess.run (["journalctl", "--user", "-o", "cat",
+                             f"--since=@{int (t0) - 1}"],
+                            capture_output=True, text=True).stdout
+      ln = [l for l in out.splitlines () if tag + "|" in l]
+      if ln:
+         break
    subprocess.run (q + ["/Scripting", "org.kde.kwin.Scripting."
-                        "unloadScript", "pch"], capture_output=True)
-   out = subprocess.run (["journalctl", "--user", "-o", "cat",
-                          f"--after-cursor={cur}"],
-                         capture_output=True, text=True).stdout
-   ln = [l for l in out.splitlines () if "PCH|" in l]
-   return ln [-1].split ("PCH|") [1] if ln else "err|no output from kwin"
+                        "unloadScript", tag], capture_output=True)
+   tmp.unlink ()
+   return ln [-1].split (tag + "|") [1] if ln else "err|no output from kwin"
 
 
 def portrait ():

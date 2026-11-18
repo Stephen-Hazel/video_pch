@@ -11,6 +11,8 @@
 #   -p SECS    just render a preview this long
 #   --from T --to T     obs secs to keep (default whole overlap)
 #   --nudge MS          phone video later by MS (earlier if -)
+#   --noise T           obs secs where NOISE secs of bare mixer hiss
+#                       start (default: quietest spot of track 2)
 #   --sx --sy --px --py crop centre 0..1 of screen / phone (default .5,
 #                       stackv --sx 0 = left side of screen, portrait
 #                       take --sy 0 = top)
@@ -22,8 +24,10 @@ from vidlib import *
 
 MUSIC = -18                            # LUFS each source is set to
 VOICE = -16
-FINAL = "I=-14:TP=-1:LRA=20"           # youtube'ish; LRA > input's
-                                       # or loudnorm goes dynamic
+FINAL = -14                            # LUFS, tiktok/youtube'ish:
+PEAK  = -2                             # straight gain then limit peaks
+NR    = 12                             # dB of hiss off the music
+NOISE = 5                              # secs of bare hiss to learn it
 AFMT  = "aformat=sample_rates=48000:channel_layouts=stereo"
 VCHN  = ("highpass=f={hp},afftdn=nf=-25,"
          "acompressor=threshold=-24dB:ratio=3:attack=5:release=120")
@@ -57,6 +61,32 @@ def video (lay, s, o):
            "[t][b]overlay=W-w:H-h[v]")
 
 
+def quiet (s):
+   "obs secs where the quietest NOISE secs of track 2 start - bare hiss"
+   x, st = audio (s ["obs"], probe (s ["obs"]), 1)
+   h  = SR // 10
+   n  = len (x) // h
+   db = 10 * np.log10 ((x [:n*h].reshape (n, h) ** 2).mean (1) + 1e-20)
+   w  = NOISE * 10
+   bst, at = 0, None
+   for i in range (n - w):
+      d = db [i:i+w]
+      if d.min () > -120 and (at is None or d.max () < bst):
+         bst, at = d.max (), i         # no notes n not digital silence
+   if at is None:
+      sys.exit ("no bare hiss on track 2 - use --noise")
+   return st + at / 10
+
+
+def musSrc ():
+   "music (track 2) w hiss learnt off input 2 (NOISE secs of bare hiss)"
+   return (f"[2:a:1]{AFMT}[nz];[0:a:1]{AFMT}[mu];"
+           "[nz][mu]concat=n=2:v=0:a=1,"
+           f"asendcmd=c='0.2 afftdn@dn sn start;{NOISE - .2} "
+           "afftdn@dn sn stop',"
+           f"afftdn@dn=nr={NR},atrim=start={NOISE},asetpts=PTS-STARTPTS")
+
+
 def loud (args):
    "loudnorm's measurement json for an ffmpeg arg list ending in a filter"
    r = run (["ffmpeg", "-hide_banner", "-nostats"] + args +
@@ -75,7 +105,7 @@ def mix (v, s, ins, stem):
    lvl = lambda ch: float (loud (ins + ["-filter_complex",
             ch + f",{AFMT},loudnorm=print_format=json[o]",
             "-map", "[o]"]) ["input_i"])
-   mus = f"[0:a:1]{AFMT}"
+   mus = musSrc ()
    gm  = MUSIC - lvl (mus)
    g   = f"{mus},volume={gm:.2f}dB"
    if v != "none":
@@ -102,6 +132,7 @@ def main ():
    ap.add_argument ("--from", dest="t0", type=float)
    ap.add_argument ("--to", dest="t1", type=float)
    ap.add_argument ("--nudge", type=float, default=0)
+   ap.add_argument ("--noise", type=float)
    ap.add_argument ("--sx", type=float)
    ap.add_argument ("--sy", type=float)
    for c in ("px", "py"):
@@ -133,19 +164,26 @@ def main ():
       print ("obs file has no track 3 (mic) - skipping mic")
       vos.remove ("mic")
    tag = "-prev" if o.p else ""
+   nz  = quiet (s) if o.noise is None else o.noise
+   print (f"hiss learnt off obs {nz:.1f}-{nz + NOISE:.1f}s")
+   nzi = ["-ss", f"{nz - s ['obsStart']:.4f}", "-t", str (NOISE),
+          "-i", s ["obs"]]
 
    for v in vos:
       print (f"audio: {v}")
-      wav = mix (v, s, ins, stem + tag)
+      wav = mix (v, s, ins + nzi, stem + tag)
       if not wav:
          continue
-      m  = loud (["-i", str (wav), "-af",
-                  f"loudnorm={FINAL}:print_format=json"])
-      ln = (f"loudnorm={FINAL}:measured_I={m ['input_i']}:"
-            f"measured_TP={m ['input_tp']}:"
-            f"measured_LRA={m ['input_lra']}:"
-            f"measured_thresh={m ['input_thresh']}:"
-            f"offset={m ['target_offset']}:linear=true,aresample=48000")
+      lim = (f"alimiter=limit={10 ** (PEAK / 20):.4f}:attack=5:"
+             "release=50:level=0,aresample=48000")
+      g   = 0
+      for i in range (4):              # limiter eats some - gain up
+         m = loud (["-i", str (wav), "-af", f"volume={g:.2f}dB,{lim},"
+                    "loudnorm=print_format=json"])
+         if abs (FINAL - float (m ["input_i"])) < .2:
+            break
+         g += FINAL - float (m ["input_i"])
+      ln  = f"volume={g:.2f}dB,{lim}"
       for lay in lays:
          mp4 = OUT / f"{stem}{tag}-{lay}-{v}.mp4"
          print (f"  {mp4.name}")
@@ -158,6 +196,8 @@ def main ():
                "-color_primaries", "bt709", "-color_trc", "bt709",
                "-c:a", "aac", "-b:a", "192k",
                "-movflags", "+faststart", str (mp4)])
+         f = loud (["-i", str (mp4), "-af", "loudnorm=print_format=json"])
+         print (f"    {f ['input_i']} LUFS, {f ['input_tp']} dBTP")
       wav.unlink ()
 
 

@@ -139,6 +139,8 @@ match.
 - `--from T --to T` obs secs to keep (default whole overlap - use this
   to cut off the sync notes)
 - `--nudge MS` phone video later (or earlier if -) if sync looks off
+- `--noise T` obs secs where 5s of bare mixer hiss starts (default:
+  quietest 5s of track 2 - needs a gap w no playing somewhere)
 - `--sx --sy --px --py` crop centre 0..1 for screen / phone
   (eg `--py .7` keeps lower part of the phone frame)
 
@@ -154,13 +156,17 @@ AAC 192k, faststart.
   refined to the sample on 1ms envelopes around their sharpest note
   -> drift.  Mapping saved as `phone time = a * obs time + b`.
   Drift ignored if the 2 disagree (> 100ms or > 500ppm).
-- **mk.py audio**: music (track 2, mixer) set to -18 LUFS, voice
-  (track 3 headset: highpass, afftdn denoise, compressor) set to
-  -16 LUFS, music ducked under voice (sidechaincompress), mixed, then
-  2 pass loudnorm to -14 LUFS / -1 dBTP.
+- **mk.py audio**: music (track 2, mixer) dehissed (afftdn nr 12 dB,
+  noise profile learnt off 5s of bare hiss from the same take) n set
+  to -18 LUFS, voice (track 3 headset: highpass, afftdn denoise,
+  compressor) set to -16 LUFS, music ducked under voice
+  (sidechaincompress), mixed, then straight gain to -14 LUFS w
+  alimiter at -2 dB (~-1.7 dBTP); gain re-measured after the limiter
+  til within 0.2 LU.  No loudnorm dynamic mode = no lifted hiss.
 - **mk.py video**: phone tonemapped if HDR, setpts for drift,
   both forced to obs fps, scale+crop to fill each pane.
-- Tune: MUSIC / VOICE / FINAL / VCHN / DUCK at top of mk.py.
+- Tune: MUSIC / VOICE / FINAL / PEAK / NR / NOISE / VCHN / DUCK at
+  top of mk.py.
 
 ## Status / next
 
@@ -272,8 +278,16 @@ AAC 192k, faststart.
   - Phone aimed too high: hands at bottom edge, fingertips cut (no
     crop room in stackv now).  pianocheetah track list columns cut
     at 1080 wide.
+- 2026-11-18: hiss fix + tiktok cut.  mk.py: afftdn on music w
+  learnt noise profile, loudnorm replaced by gain + alimiter.
+  Rendered `out/2026-11-18 08-59-37-stackv-none.mp4` --from 258
+  --to 314.8 (1st note 258.64, phrase break ~314.5): 56.8s,
+  -14.1 LUFS, -1.66 dBTP.  Quiet floor -51.4 -> -65.5 dB (old vs new
+  chain, same cut), music level same.  Listen: out/...-hiss-{old,new}
+  .mp3 (1st 15s).  Tiktok: 9:16 1080x1920 h264/aac, <= 60s.
+  User to judge by ear: piano decays not watery?
 - Next: aim phone lower (hands centred), piano ch 7/8 hotter (~-6
-  pk), hiss fix in mk.py (alimiter before loudnorm, see 11-17).
+  pk) = less hiss to start with.
 - Watch for: speaker bleed into headset n phone (lower Ctrl Room
   while talking).  Synth/speaker latency may need a small `--nudge`.
 

@@ -286,6 +286,12 @@ AAC 192k, faststart.
   chain, same cut), music level same.  Listen: out/...-hiss-{old,new}
   .mp3 (1st 15s).  Tiktok: 9:16 1080x1920 h264/aac, <= 60s.
   User to judge by ear: piano decays not watery?
+- 2026-11-18: uploaded that render.  TikTok: public (Everyone),
+  caption still the filename - fix it.  YouTube Short: title
+  "Clair de Lune (Debussy) on PianoCheetah #shorts", not made for
+  kids, left PRIVATE (checks were still running) - set Public in
+  Studio > Content when checks are done.  Files > 10 MB can't go
+  through Claude's browser upload - user picks the file.
 - Next: aim phone lower (hands centred), piano ch 7/8 hotter (~-6
   pk) = less hiss to start with.
 - Watch for: speaker bleed into headset n phone (lower Ctrl Room

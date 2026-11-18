@@ -258,7 +258,22 @@ AAC 192k, faststart.
   app.shaz.pianocheetah, min size 583x196, takes 1080x1312 fine.
   Then: titlebar n frame left on (in the video).  rec.py finds the
   kwin script's output in the journal by a unique tag per run (the
-  journal cursor way failed intermittently).
+  journal cursor way failed intermittently).  Repo made public.
+- 2026-11-18: 1st portrait take `/home/sh/2026-11-18 08-59-37.mkv`
+  (6:06, no voice, no synth audio - piano on track 2 only, pk -11.7)
+  + phone `PXL_20261118_170317245.mp4` (4K SDR, 2:27, started 3:39
+  in; `PXL_20261118_165908459.mp4` 15 MB = stray clip).  sync.py: 6
+  of 7 chunks agree, phone = obs -219.15s, +179ppm (applied).  No
+  sync note needed - song itself syncs fine.
+  - obs 0:49-0:54 n 3:50-4:02 = same intro, no hands (pianocheetah
+    playing it?).  User plays 4:18-6:06.
+  - Rendered `out/2026-11-18 08-59-37-stackv-none.mp4` --from 255
+    --to 346 (cut before last loud note at 346.2): 91s, -13.8 LUFS.
+  - Phone aimed too high: hands at bottom edge, fingertips cut (no
+    crop room in stackv now).  pianocheetah track list columns cut
+    at 1080 wide.
+- Next: aim phone lower (hands centred), piano ch 7/8 hotter (~-6
+  pk), hiss fix in mk.py (alimiter before loudnorm, see 11-17).
 - Watch for: speaker bleed into headset n phone (lower Ctrl Room
   while talking).  Synth/speaker latency may need a small `--nudge`.
 

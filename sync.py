@@ -1,4 +1,4 @@
-#!/home/sh/web/vid/.venv/bin/python
+#!/home/sh/web/video_pch/.venv/bin/python
 # sync.py - line up phone vid with an obs recording off its audio
 #   sync.py [-t N] [obs.mkv [phone.mp4]]
 # defaults: last take in takes.log, newest vid in DCIM/Camera,

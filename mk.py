@@ -1,4 +1,4 @@
-#!/home/sh/web/vid/.venv/bin/python
+#!/home/sh/web/video_pch/.venv/bin/python
 # mk.py - render synced obs + phone vid in some layouts / voice sources
 #   mk.py [obs.mkv | x.sync.json] [opts]   (default: last take)
 #   -l stackv|stack|pip|all   layout (default all)

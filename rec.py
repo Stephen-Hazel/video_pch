@@ -1,4 +1,4 @@
-#!/home/sh/web/vid/.venv/bin/python
+#!/home/sh/web/video_pch/.venv/bin/python
 # rec.py - drive obs over its websocket
 #   rec.py check   show obs setup (output mode, tracks, inputs, video)
 #   rec.py start   switch obs to the vid config, start recording

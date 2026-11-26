@@ -16,8 +16,11 @@
 #   --sx --sy --px --py crop centre 0..1 of screen / phone (default .5,
 #                       stackv --sx 0 = left side of screen, portrait
 #                       take --sy 0 = top)
+#   --norot             phone vid as is (default: turned 180, phone is
+#                       mounted upside down from 2026-11-25 on)
 # music = obs track 2 (mixer), mic = obs track 3 (headset)
-# writes out/<take>-<layout>-<voice>.mp4
+# writes out/<yymmdd_hhmmss>_<layout>[_<voice>][_prev].mp4
+#   (voice left off when none)
 
 import argparse, json, re
 from vidlib import *
@@ -46,6 +49,8 @@ def video (lay, s, o):
    ph  = (TONEMAP + ",") if s ["phoneHdr"] else ""
    if abs (s ["a"] - 1) > 20e-6:
       ph += f"setpts=PTS/{s ['a']:.8f},"
+   if not o.norot:
+      ph += "hflip,vflip,"             # = turned 180, not mirrored
    scr = f"[0:v]fps={f},"
    ph  = f"[1:v]{ph}fps={f},"
    sx  = o.sx if o.sx is not None else 0 if lay == "stackv" else 0.5
@@ -54,11 +59,20 @@ def video (lay, s, o):
       return (scr + fill (1080, 1312, sx, sy) + "[t];" +
               ph + fill (1080, 608, o.px, o.py) + "[b];[t][b]vstack[v]")
    if lay == "stack":
-      return (scr + fill (1920, 540, sx, o.sy) + "[t];" +
+      return (scr + fill (1920, 540, sx, sy) + "[t];" +
               ph + fill (1920, 540, o.px, o.py) + "[b];[t][b]vstack[v]")
-   return (scr + fill (1920, 1080, sx, o.sy) + "[t];" +
+   return (scr + fill (1920, 1080, sx, sy) + "[t];" +
            ph + fill (960, 540, o.px, o.py) + "[b];"
            "[t][b]overlay=W-w:H-h[v]")
+
+
+def name (stem):
+   "obs take name (2026-11-25 17-06-44) as yymmdd_hhmmss (261125_170644)"
+   m = re.match (r"\d\d(\d\d)-(\d\d)-(\d\d) (\d\d)-(\d\d)-(\d\d)$", stem)
+   if not m:
+      return stem                      # already yymmdd_hhmmss or other
+   g = m.groups ()
+   return "".join (g [:3]) + "_" + "".join (g [3:])
 
 
 def quiet (s):
@@ -137,6 +151,7 @@ def main ():
    ap.add_argument ("--sy", type=float)
    for c in ("px", "py"):
       ap.add_argument ("--" + c, type=float, default=0.5)
+   ap.add_argument ("--norot", action="store_true")
    o = ap.parse_args ()
 
    t  = pathlib.Path (o.take) if o.take else newestObs ()
@@ -185,7 +200,9 @@ def main ():
          g += FINAL - float (m ["input_i"])
       ln  = f"volume={g:.2f}dB,{lim}"
       for lay in lays:
-         mp4 = OUT / f"{stem}{tag}-{lay}-{v}.mp4"
+         vo  = "" if v == "none" else "_" + v
+         pv  = "_prev" if o.p else ""
+         mp4 = OUT / f"{name (stem)}_{lay}{vo}{pv}.mp4"
          print (f"  {mp4.name}")
          run (["ffmpeg", "-y", "-v", "error"] + ins + ["-i", str (wav),
                "-filter_complex", video (lay, s, o) + f";[2:a]{ln}[a]",

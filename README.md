@@ -143,9 +143,13 @@ match.
   quietest 5s of track 2 - needs a gap w no playing somewhere)
 - `--sx --sy --px --py` crop centre 0..1 for screen / phone
   (eg `--py .7` keeps lower part of the phone frame)
+- `--norot` phone vid as is.  Default turns it 180 (phone mounted
+  upside down from 2026-11-25 on) - use --norot for older takes.
 
-Output: `out/<take>[-prev]-<layout>-<voice>.mp4`, H.264 crf 18,
-AAC 192k, faststart.
+Output: `out/<yymmdd_hhmmss>_<layout>[_<voice>][_prev].mp4` (voice
+left off when none, eg `261125_170644_pip.mp4`), H.264 crf 18,
+AAC 192k, faststart.  Renders before 2026-11-25 have the old
+`<take>[-prev]-<layout>-<voice>.mp4` names.
 
 ## How it works
 
@@ -317,6 +321,40 @@ AAC 192k, faststart.
      in chunks.
   2. mk.py: take a separate voice file per segment instead of track 3
      (plan first).
+- 2026-11-25: 1st landscape pip test take w piano ch 7/8 n drums
+  ch 11/12.  Level check (parecord) after ch 7/8 up a bit: piano pk
+  -6..-7, drums -5..-6, rms both ~-23, floor -83.
+  - Take `/home/sh/2026-11-25 17-06-44.mkv` (3:36, music 0:45-3:15,
+    played softer: pk -12 / rms -37) + phone
+    `PXL_20261126_010712739.mp4`.  sync.py: 7 of 8 chunks agree,
+    phone = obs -28.545s, +154ppm.
+  - Phone mounted behind the keyboard looking at the player = upside
+    down -> mk.py turns it 180 by default now (`--norot` = off).
+  - mk.py bug fixed: stack n pip used o.sy (None unless --sy given)
+    -> crop crashed.  Now use the computed sy.
+  - Output names now yymmdd_hhmmss_layout.mp4.  Rendered
+    `out/261125_170644_pip.mp4` (--from 44 --to 196): 2:32,
+    -14.1 LUFS, -1.4 dBTP.  Hands at the bottom edge, fingers cut -
+    aim phone so hands are centred.
+- 2026-11-25: 2nd pip take `/home/sh/2026-11-25 17-32-34.mkv` (4:53)
+  + phone `PXL_20261126_013303401.mp4` (2:53).  Phone remounted -
+  hands n fingers fully in frame now.
+  - OBS track 2 = bare hiss (-84) the whole take while the phone
+    heard loud music (pk -0.7) -> mixer wasn't sending USB.  Likely
+    2-TR/USB to Main on (see gotchas).  sync.py: 1 of 8 = garbage.
+    Do a quick parecord level check before each session's 1st take.
+  - Phone now tags its vid rotation -180 (ffmpeg autorotates it to
+    "upright" = view from behind the keys); mk.py's flip on top of
+    that = player's view, right.  Earlier phone vids had no tag n
+    were the same picture, so the default flip is right for both.
+  - Rough render by hand (not mk.py): phone audio loudnormed to -14,
+    phone = obs -28.4s off file start times (phone filename = start
+    UTC, creation_time = end; obs mtime = end).
+    `out/261125_173234_pip_rough.mp4`.
+  - rec.py start right after stop says "already recording" - OBS
+    needs ~2s to finish the file.
+- Next: check 2-TR/USB to Main off n ch 5/6 down, level check, real
+  take w phone audio only for sync.
 
 ## Files
 

@@ -296,6 +296,27 @@ AAC 192k, faststart.
   pk) = less hiss to start with.
 - Watch for: speaker bleed into headset n phone (lower Ctrl Room
   while talking).  Synth/speaker latency may need a small `--nudge`.
+- 2026-11-25: trailer audio decided (script: ~/web/market/trailer.txt).
+  Overrides "Audio sources" above for the trailer:
+  - Voice = condenser mic on the mixer (phantom on) -> USB -> OBS
+    track 2.  No headset, no syn (ch 5/6 down, only up to hear
+    playback).  Piano ch 7/8 + drums on the mixer.
+  - Everything shares track 2, so never talk while playing.  Voice
+    is its own pass (piano/drums down, Ctrl Room down), playing
+    takes have no voice.
+  - Face cam bits: phone video n phone mic.
+  - 2-TR/USB to Main n to Ctrl Room both OFF, always.
+  - Card numbers moved: PCM2902 now card 4, card 6 = built-in HDA
+    (so the old `amixer -c 6` headset line is wrong now).
+  - Condenser sound check (parecord, 200ms latency): mic gain up n
+    pan centred -> voice pk -6.8, -28.9 LUFS, floor ~-76 dB.  L ~6 dB
+    hotter than R even centred - use the left channel as mono.
+    Leave the mixer as is.
+- Next (trailer):
+  1. Voice pass: 5s of silence first (noise profile), then the script
+     in chunks.
+  2. mk.py: take a separate voice file per segment instead of track 3
+     (plan first).
 
 ## Files
 

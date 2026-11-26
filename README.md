@@ -66,7 +66,8 @@ track 1 n 2 together (synth doubled = phasey).
    `~/.var/app/com.obsproject.Studio/config/obs-studio/plugin_config/
    obs-websocket/config.json`
 2. Settings > Output > Advanced > Recording: format MKV,
-   audio tracks 1, 2 n 3 checked.  Rec path is still /home/sh.
+   audio tracks 1, 2 n 3 checked.  Rec path (vid n vidp) =
+   `video_pch/takes/` (not in git) since 2026-11-25 - was /home/sh.
 3. Settings > Audio: Mic/Aux disabled.  Sources (Edit > Advanced Audio
    Properties), monitoring off on all:
    - Desktop Audio -> track 1 only (synth)
@@ -366,6 +367,8 @@ AAC 192k, faststart.  Renders before 2026-11-25 have the old
 - `mk.py`     render layouts x voice sources
 - `vidlib.py` shared bits (ffprobe, audio decode, tonemap, paths)
 - `takes.log` obs recordings, one per line (from rec.py stop)
+- `takes/`    OBS recordings (.mkv) from the vid n vidp profiles
+              (not in git)
 - `out/`      sync json, stills, rendered mp4s
 - `tmp/lev.py` per second rms/peak of obs tracks 1-3 (throwaway)
 - `tmp/xc.py`  `<mkv> <phone> <track>` phone offset per 20s chunk

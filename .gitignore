@@ -3,3 +3,4 @@ __pycache__/
 out/
 tmp/
 obs/prev.json
+takes/
